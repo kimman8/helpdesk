@@ -9,7 +9,16 @@
       "Bash(curl -s http://localhost:3000/health)",
       "Bash(kill %1)",
       "Bash(lsof -ti:3000)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "Bash(~/.bun/bin/bun add:*)",
+      "Bash(~/.bun/bin/bunx prisma:*)",
+      "Bash(pg_isready:*)",
+      "Bash(psql -U postgres -c '\\\\l')",
+      "Bash(brew services:*)",
+      "Bash(docker:*)",
+      "Bash(brew install:*)"
     ]
   }
 }
