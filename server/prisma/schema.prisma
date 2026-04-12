@@ -7,11 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role {
-  ADMIN
-  AGENT
-}
-
 enum TicketStatus {
   OPEN
   RESOLVED
@@ -30,9 +25,13 @@ model User {
   name          String
   emailVerified Boolean   @default(false)
   image         String?
-  role          Role      @default(AGENT)
+  role          String    @default("agent")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  banned    Boolean?
+  banReason String?
+  banExpires DateTime?
 
   sessions Session[]
   accounts Account[]

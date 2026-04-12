@@ -28,7 +28,10 @@
       "Bash(curl -s -b /tmp/helpdesk-cookies.txt http://localhost:3000/api/auth/get-session)",
       "Bash(curl -s -b /tmp/helpdesk-cookies.txt -X POST http://localhost:3000/api/auth/sign-out)",
       "Bash(curl -s -b /tmp/helpdesk-cookies.txt -X POST http://localhost:3000/api/auth/sign-out -H 'Origin: http://localhost:5173')",
-      "Bash(~/.bun/bin/bunx tsc:*)"
+      "Bash(~/.bun/bin/bunx tsc:*)",
+      "Bash(curl -s -X POST http://localhost:3000/api/auth/sign-up/email -H 'Content-Type: application/json' -d '{\"email\":\"test@test.com\",\"password\":\"password123\",\"name\":\"Test\"}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/auth/sign-in/email -H 'Content-Type: application/json' -d '{\"email\":\"admin@example.com\",\"password\":\"password123\"}')",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\" ~/.bun/bin/bunx prisma:*)"
     ]
   }
 }
