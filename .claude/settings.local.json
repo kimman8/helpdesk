@@ -18,7 +18,17 @@
       "Bash(psql -U postgres -c '\\\\l')",
       "Bash(brew services:*)",
       "Bash(docker:*)",
-      "Bash(brew install:*)"
+      "Bash(brew install:*)",
+      "Bash(grep -E '\\\\.\\(ts|js\\)$')",
+      "Bash(openssl rand:*)",
+      "Bash(~/.bun/bin/bun pm:*)",
+      "Bash(~/.bun/bin/bun:*)",
+      "Bash(curl -s -c /tmp/helpdesk-cookies.txt -X POST http://localhost:3000/api/auth/sign-up/email -H 'Content-Type: application/json' -d '{\"email\":\"admin@helpdesk.com\",\"password\":\"password123\",\"name\":\"Admin\"}')",
+      "Bash(curl -s -c /tmp/helpdesk-cookies.txt -X POST http://localhost:3000/api/auth/sign-in/email -H 'Content-Type: application/json' -d '{\"email\":\"admin@helpdesk.com\",\"password\":\"password123\"}')",
+      "Bash(curl -s -b /tmp/helpdesk-cookies.txt http://localhost:3000/api/auth/get-session)",
+      "Bash(curl -s -b /tmp/helpdesk-cookies.txt -X POST http://localhost:3000/api/auth/sign-out)",
+      "Bash(curl -s -b /tmp/helpdesk-cookies.txt -X POST http://localhost:3000/api/auth/sign-out -H 'Origin: http://localhost:5173')",
+      "Bash(~/.bun/bin/bunx tsc:*)"
     ]
   }
 }
