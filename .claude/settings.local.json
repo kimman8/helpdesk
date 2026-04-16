@@ -34,7 +34,8 @@
       "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\" ~/.bun/bin/bunx prisma:*)",
       "Bash(echo \"Server PID: $!\")",
       "Bash(echo \"Client PID: $!\")",
-      "Read(//private/tmp/**)"
+      "Read(//private/tmp/**)",
+      "Bash(echo \"PID: $!\")"
     ]
   }
 }
