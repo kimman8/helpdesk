@@ -10,7 +10,7 @@ export const auth = betterAuth({
 
   baseURL: process.env.BETTER_AUTH_URL,
   secret: process.env.BETTER_AUTH_SECRET,
-  trustedOrigins: ['http://localhost:5173'],
+  trustedOrigins: (process.env.TRUSTED_ORIGINS ?? '').split(',').map((o) => o.trim()).filter(Boolean),
 
   emailAndPassword: {
     enabled: true,
