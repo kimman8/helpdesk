@@ -35,7 +35,8 @@
       "Bash(echo \"Server PID: $!\")",
       "Bash(echo \"Client PID: $!\")",
       "Read(//private/tmp/**)",
-      "Bash(echo \"PID: $!\")"
+      "Bash(echo \"PID: $!\")",
+      "Bash(npx shadcn@latest init -d)"
     ]
   }
 }

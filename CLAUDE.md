@@ -12,6 +12,25 @@ Always use context7 (`mcp__context7__resolve-library-id` + `mcp__context7__query
 - **Email:** SendGrid or Mailgun (inbound webhook + outbound replies)
 - **Deployment:** Docker + cloud provider (Railway, Fly.io, or AWS)
 
+## Auth — Better Auth
+- Library: `better-auth` with the `admin` plugin
+- Server config: `server/src/lib/auth.ts` — Prisma adapter (PostgreSQL), email/password only, **sign-up disabled** (admin creates users manually via seed or admin API)
+- Auth routes mounted at `/api/auth/*` via `toNodeHandler(auth)` — **must be registered before `express.json()`**
+- Client: `createAuthClient()` in `client/src/lib/auth-client.ts`; use `authClient.useSession()` in React components
+- Middleware:
+  - `requireAuth` — rejects unauthenticated requests (401)
+  - `requireAdmin` — additionally checks `session.user.role === 'ADMIN'` (403 otherwise)
+- Roles: `admin` and `agent` (see `server/src/constants/roles.ts`)
+- Env vars required: `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `TRUSTED_ORIGINS` (comma-separated)
+- Session is stored in the DB and sent via cookie; Vite proxies `/api` → `http://localhost:3000`
+
+## UI — shadcn/ui
+- Installed in `/client` with style `base-nova`, base color `neutral`, Tailwind v4 mode
+- Path alias `@/` → `client/src/` (configured in `vite.config.ts`, `tsconfig.json`, `tsconfig.app.json`)
+- Components live in `src/components/ui/`. Add new ones with `npx shadcn@latest add <component>` from `/client`
+- Use semantic tokens (`text-muted-foreground`, `bg-muted/40`, `text-destructive`, etc.) — avoid hardcoded `gray-*` classes
+- Navbar is `bg-slate-900`; all other surfaces use shadcn `Card` and theme tokens
+
 ## Project Structure
 ```
 /client   React frontend
