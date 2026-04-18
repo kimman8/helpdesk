@@ -7,7 +7,12 @@ import { auth } from './lib/auth';
 const app = express();
 const PORT = process.env.PORT ?? 3000;
 
-app.use(cors());
+const trustedOrigins = (process.env.TRUSTED_ORIGINS ?? '').split(',').map((o) => o.trim()).filter(Boolean)
+
+app.use(cors({
+  origin: trustedOrigins,
+  credentials: true,
+}));
 
 // Auth handler MUST come before express.json() — it handles its own body parsing
 app.all('/api/auth/*', toNodeHandler(auth));

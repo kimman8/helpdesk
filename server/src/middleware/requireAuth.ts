@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { fromNodeHeaders } from 'better-auth/node'
 import { auth } from '../lib/auth'
+import { Role } from '../constants/roles'
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
@@ -23,7 +24,7 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
     return
   }
 
-  if (session.user.role !== 'ADMIN') {
+  if (session.user.role !== Role.ADMIN) {
     res.status(403).json({ error: 'Forbidden' })
     return
   }
