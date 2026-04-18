@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { authClient } from '../lib/auth-client'
 import { Button } from '@/components/ui/button'
 
@@ -29,6 +29,13 @@ export default function Navbar() {
         </div>
         <span className="font-semibold text-white text-sm tracking-tight">Helpdesk</span>
       </div>
+
+      {/* Admin nav */}
+      {session?.user.role === 'admin' && (
+        <Link to="/users" className="text-sm text-slate-300 hover:text-white transition-colors">
+          Users
+        </Link>
+      )}
 
       {/* User */}
       {session && (

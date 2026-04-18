@@ -27,6 +27,7 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: { email: '', password: '' },
   })
 
   if (isPending) {

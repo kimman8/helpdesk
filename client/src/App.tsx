@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminRoute from './components/AdminRoute'
+import UsersPage from './pages/UsersPage'
 import { authClient } from './lib/auth-client'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -60,6 +62,14 @@ export default function App() {
           <ProtectedRoute>
             <HomePage />
           </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <AdminRoute>
+            <UsersPage />
+          </AdminRoute>
         }
       />
       <Route path="*" element={<Navigate to="/" replace />} />
