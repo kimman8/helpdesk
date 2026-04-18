@@ -36,7 +36,15 @@
       "Bash(echo \"Client PID: $!\")",
       "Read(//private/tmp/**)",
       "Bash(echo \"PID: $!\")",
-      "Bash(npx shadcn@latest init -d)"
+      "Bash(npx shadcn@latest init -d)",
+      "mcp__ide__getDiagnostics",
+      "Bash('~/.bun/bin/bun' -e ' *)",
+      "Bash(curl -s -X POST http://localhost:5174/api/auth/sign-in/email -H 'Content-Type: application/json' -H 'Origin: http://localhost:5174' -d '{\"email\":\"admin@example.com\",\"password\":\"password123\"}')",
+      "Bash(node -e ' *)",
+      "Bash(node *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }
