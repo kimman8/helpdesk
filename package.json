@@ -4,6 +4,13 @@
   "workspaces": ["client", "server"],
   "scripts": {
     "dev:client": "bun run --cwd client dev",
-    "dev:server": "bun run --cwd server dev"
+    "dev:server": "bun run --cwd server dev",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "dotenv": "^17.4.2"
   }
 }
