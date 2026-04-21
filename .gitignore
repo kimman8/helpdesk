@@ -5,3 +5,4 @@ dist
 server/.env.test
 playwright-report/
 test-results/
+playwright/.auth/
