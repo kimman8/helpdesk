@@ -47,17 +47,4 @@ bun run dev:client   # Vite on port 5173
 Use `~/.bun/bin/bun` if `bun` is not yet on PATH in the current shell.
 
 ## E2E Testing — Playwright
-- Config: `playwright.config.ts` (root) — Chromium only
-- Tests live in `e2e/tests/`
-- **Test database:** `helpdesk_test` (PostgreSQL, separate from dev `helpdesk`)
-- **Test server:** Express on port 3001, Vite on port 5173
-- `e2e/global-setup.ts` runs before every test suite: applies Prisma migrations then seeds the admin user
-- `server/.env.test` holds test env vars (gitignored) — must be recreated on new machines
-- Vite proxy port is configurable via `API_PORT` env var (defaults to 3000 for dev, set to 3001 for tests)
-- Rate limiting on `/api/auth/sign-in` is **production only** (`NODE_ENV=production`)
-
-```bash
-bun test:e2e          # headless
-bun test:e2e:ui       # Playwright UI mode
-bun test:e2e:headed   # headed browser
-```
+Use the `playwright-e2e-writer` agent to write tests. Setup details live in that agent's Project Context.
