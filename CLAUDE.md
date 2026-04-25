@@ -24,6 +24,11 @@ Always use context7 (`mcp__context7__resolve-library-id` + `mcp__context7__query
 - Env vars required: `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `TRUSTED_ORIGINS` (comma-separated)
 - Session is stored in the DB and sent via cookie; Vite proxies `/api` → `http://localhost:3000`
 
+## Data Fetching — Axios + TanStack Query
+- Use **axios** for all HTTP requests (`withCredentials: true` for cookie-based auth)
+- Use **TanStack Query** (`@tanstack/react-query`) for all server state in React components — no manual `useEffect`/`useState` for fetching
+- `QueryClientProvider` is set up in `client/src/main.tsx`
+
 ## UI — shadcn/ui
 - Installed in `/client` with style `base-nova`, base color `neutral`, Tailwind v4 mode
 - Path alias `@/` → `client/src/` (configured in `vite.config.ts`, `tsconfig.json`, `tsconfig.app.json`)

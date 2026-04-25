@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import axios from 'axios'
 import Navbar from '../components/Navbar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -22,20 +23,11 @@ interface User {
 }
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetch('/api/users', { credentials: 'include' })
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to load users')
-        return res.json() as Promise<User[]>
-      })
-      .then(setUsers)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [])
+  const { data: users = [], isLoading, error } = useQuery({
+    queryKey: ['users'],
+    queryFn: () =>
+      axios.get<User[]>('/api/users', { withCredentials: true }).then((res) => res.data),
+  })
 
   return (
     <div className="min-h-screen bg-muted/40">
@@ -48,10 +40,10 @@ export default function UsersPage() {
             <CardTitle className="text-base font-semibold">All users</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {loading ? (
+            {isLoading ? (
               <p className="text-sm text-muted-foreground px-6 py-8">Loading…</p>
             ) : error ? (
-              <p className="text-sm text-destructive px-6 py-8">{error}</p>
+              <p className="text-sm text-destructive px-6 py-8">{(error as Error).message}</p>
             ) : (
               <Table>
                 <TableHeader>
