@@ -15,4 +15,9 @@ export default defineConfig({
       '/api': `http://localhost:${process.env.API_PORT ?? 3000}`,
     },
   },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.ts'],
+  },
 })

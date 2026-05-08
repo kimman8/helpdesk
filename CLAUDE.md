@@ -51,5 +51,27 @@ bun run dev:client   # Vite on port 5173
 
 Use `~/.bun/bin/bun` if `bun` is not yet on PATH in the current shell.
 
+## Component Testing — Vitest + React Testing Library
+- **Runner:** Vitest (configured in `client/vite.config.ts`, environment: jsdom)
+- **Libraries:** `@testing-library/react`, `@testing-library/jest-dom`, `axios-mock-adapter`
+- **Setup file:** `client/src/test/setup.ts` — imports `@testing-library/jest-dom` matchers
+- **Test files:** colocated with the page/component, named `*.test.tsx`
+- **Reference pattern:** `client/src/pages/UsersPage.test.tsx`
+
+### Writing tests
+- Mock `axios` using `axios-mock-adapter` — do **not** use `vi.mock('axios')`
+- Create a fresh `MockAdapter` and `QueryClient` per test (in `beforeEach` / inside `renderPage`)
+- Call `mock.restore()` in `afterEach`
+- Mock `authClient` via `vi.mock('../lib/auth-client', ...)` for any component that uses `useSession()`
+- Wrap the component under test in `<QueryClientProvider>` and `<MemoryRouter>`
+- Always set `retry: false` on the `QueryClient` in tests
+
+### Running tests
+```bash
+cd client
+bun run test          # single run
+bun run test:watch    # watch mode
+```
+
 ## E2E Testing — Playwright
 Use the `playwright-e2e-writer` agent to write tests. Setup details live in that agent's Project Context.
