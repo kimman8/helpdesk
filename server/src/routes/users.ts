@@ -29,9 +29,15 @@ router.post('/', requireAdmin, async (req, res) => {
     return
   }
   const { name, email, password } = result.data
-  const created = await auth.api.createUser({
-    body: { name, email, password, role: 'user' },
-  })
+  let created
+  try {
+    created = await auth.api.createUser({
+      body: { name, email, password, role: 'user' },
+    })
+  } catch {
+    res.status(400).json({ error: 'A user with that email already exists' })
+    return
+  }
   const user = await prisma.user.update({
     where: { id: created.user.id },
     data: { role: 'agent' },

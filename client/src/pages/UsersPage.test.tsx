@@ -125,6 +125,26 @@ describe('UsersPage', () => {
     )
   })
 
+  it('closes the modal when pressing Escape', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => expect(screen.getByRole('button', { name: 'New User' })).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'New User' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('closes the modal when clicking outside', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => expect(screen.getByRole('button', { name: 'New User' })).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'New User' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    await user.click(document.querySelector('[data-slot="dialog-overlay"]')!)
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
   it('renders a "New User" button', async () => {
     renderPage()
     await waitFor(() => expect(screen.getByText('Alice Admin')).toBeInTheDocument())

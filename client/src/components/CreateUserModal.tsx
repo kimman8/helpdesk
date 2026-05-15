@@ -28,14 +28,6 @@ export default function CreateUserModal({ open, onOpenChange, onSuccess }: Creat
     resolver: zodResolver(createUserSchema),
   })
 
-  function handleOpenChange(value: boolean) {
-    if (!value) {
-      reset()
-      setServerError(null)
-    }
-    onOpenChange(value)
-  }
-
   const mutation = useMutation({
     mutationFn: (data: CreateUserInput) =>
       axios.post('/api/users', data, { withCredentials: true }).then((res) => res.data),
@@ -51,6 +43,15 @@ export default function CreateUserModal({ open, onOpenChange, onSuccess }: Creat
     },
   })
 
+  function handleOpenChange(value: boolean) {
+    if (!value) {
+      reset()
+      setServerError(null)
+      mutation.reset()
+    }
+    onOpenChange(value)
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
@@ -61,19 +62,19 @@ export default function CreateUserModal({ open, onOpenChange, onSuccess }: Creat
         <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
           <div className="space-y-1">
             <Label htmlFor="name">Name</Label>
-            <Input id="name" {...register('name')} />
+            <Input id="name" aria-invalid={!!errors.name} {...register('name')} />
             {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
           </div>
 
           <div className="space-y-1">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" {...register('email')} />
+            <Input id="email" type="email" aria-invalid={!!errors.email} {...register('email')} />
             {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
           </div>
 
           <div className="space-y-1">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" {...register('password')} />
+            <Input id="password" type="password" aria-invalid={!!errors.password} {...register('password')} />
             {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
           </div>
 
