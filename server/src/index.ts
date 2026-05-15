@@ -4,8 +4,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './lib/auth';
-import { requireAdmin } from './middleware/requireAuth';
-import prisma from './lib/db';
+import usersRouter from './routes/users';
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;
@@ -36,21 +35,7 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.get('/api/users', requireAdmin, async (_req, res) => {
-  const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      createdAt: true,
-      banned: true,
-      banReason: true,
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-  res.json(users);
-});
+app.use('/api/users', usersRouter)
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

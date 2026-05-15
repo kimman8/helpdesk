@@ -50,7 +50,11 @@
       "Bash(DATABASE_URL=\"postgresql://volde@localhost:5432/helpdesk_test?schema=public\" BETTER_AUTH_URL=\"http://localhost:3001\" BETTER_AUTH_SECRET=\"test-only-secret-not-for-production\" ADMIN_EMAIL=\"admin@example.com\" ADMIN_PASSWORD=\"password123\" ~/.bun/bin/bun *)",
       "Bash(npx shadcn@latest add table badge --yes)",
       "Bash(npx tsc *)",
-      "Bash(~/.bun/bin/bunx vitest *)"
+      "Bash(~/.bun/bin/bunx vitest *)",
+      "Bash(npx shadcn@latest add dialog --yes)",
+      "Bash(bun run *)",
+      "Bash(pkill -f \"bun --watch src/index.ts\")",
+      "Bash(bun add *)"
     ]
   }
 }

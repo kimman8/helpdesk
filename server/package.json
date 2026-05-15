@@ -7,13 +7,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@helpdesk/core": "workspace:*",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
     "better-auth": "^1.6.2",
     "cors": "^2.8.5",
     "dotenv": "^17.4.1",
     "express": "^4.18.2",
-    "express-rate-limit": "^8.3.2"
+    "express-rate-limit": "^8.3.2",
+    "zod": "~4.3.6"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

@@ -73,5 +73,25 @@ bun run test          # single run
 bun run test:watch    # watch mode
 ```
 
+## Express Version & Async Error Handling
+- The backend runs **Express 5**, which automatically forwards rejected promises to the error handler — do **not** wrap async route handlers in try/catch unless you need to handle a specific error case differently (e.g. returning 400 vs 500)
+
+## Shared Package — `@helpdesk/core`
+- Lives in `packages/core/src/` and is consumed by both client and server via `"workspace:*"`
+- **Zod schemas belong here** — define them in `packages/core/src/schemas/`, export via `packages/core/src/index.ts`, and import as `import { mySchema } from '@helpdesk/core'` on both sides
+- The package exports raw TypeScript source (no build step); Bun and Vite both handle `.ts` directly
+- Add new schemas here whenever the same validation rules are needed in client and server
+
+## Forms — React Hook Form + Zod
+- Use **react-hook-form** with **`zodResolver`** from `@hookform/resolvers/zod` for all forms
+- Define a `z.object` schema, derive the type with `z.infer<typeof schema>`, pass `{ resolver: zodResolver(schema) }` to `useForm`
+- Use `register`, `handleSubmit`, and `formState.errors` — no controlled `useState` for field values
+- Call `reset()` from `useForm` when closing/clearing a form (e.g. on modal close)
+
+## Backend Validation — Zod
+- Use **Zod** for all request body validation in Express routes
+- Define schemas at the top of the route file/handler; use `schema.safeParse(req.body)` and return `400` on failure
+- Return the first issue message: `result.error.issues[0].message`
+
 ## E2E Testing — Playwright
 Use the `playwright-e2e-writer` agent to write tests. Setup details live in that agent's Project Context.
