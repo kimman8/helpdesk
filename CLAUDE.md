@@ -20,7 +20,7 @@ Always use context7 (`mcp__context7__resolve-library-id` + `mcp__context7__query
 - Middleware:
   - `requireAuth` — rejects unauthenticated requests (401)
   - `requireAdmin` — additionally checks `session.user.role === Role.ADMIN` i.e. `'admin'` (403 otherwise)
-- Roles: `admin` and `agent` (see `server/src/constants/roles.ts`)
+- Roles: use the `Role` constant from `@helpdesk/core` — never use the raw strings `'admin'` or `'agent'` in logic (test fixtures are exempt)
 - Env vars required: `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `TRUSTED_ORIGINS` (comma-separated)
 - Session is stored in the DB and sent via cookie; Vite proxies `/api` → `http://localhost:3000`
 
@@ -79,8 +79,9 @@ bun run test:watch    # watch mode
 ## Shared Package — `@helpdesk/core`
 - Lives in `packages/core/src/` and is consumed by both client and server via `"workspace:*"`
 - **Zod schemas belong here** — define them in `packages/core/src/schemas/`, export via `packages/core/src/index.ts`, and import as `import { mySchema } from '@helpdesk/core'` on both sides
+- **Shared constants belong here** — e.g. `Role` lives in `packages/core/src/constants/roles.ts`; import as `import { Role } from '@helpdesk/core'` on both client and server
 - The package exports raw TypeScript source (no build step); Bun and Vite both handle `.ts` directly
-- Add new schemas here whenever the same validation rules are needed in client and server
+- Add new schemas or constants here whenever the same value is needed in client and server
 
 ## Forms — React Hook Form + Zod
 - Use **react-hook-form** with **`zodResolver`** from `@hookform/resolvers/zod` for all forms

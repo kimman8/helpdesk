@@ -54,7 +54,10 @@
       "Bash(npx shadcn@latest add dialog --yes)",
       "Bash(bun run *)",
       "Bash(pkill -f \"bun --watch src/index.ts\")",
-      "Bash(bun add *)"
+      "Bash(bun add *)",
+      "Bash(bunx prisma *)",
+      "Bash(psql *)",
+      "Bash(curl *)"
     ]
   }
 }

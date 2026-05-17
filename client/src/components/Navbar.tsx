@@ -1,6 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom'
 import { authClient } from '../lib/auth-client'
 import { Button } from '@/components/ui/button'
+import { Role } from '@helpdesk/core'
 
 export default function Navbar() {
   const navigate = useNavigate()
@@ -31,7 +32,7 @@ export default function Navbar() {
       </div>
 
       {/* Admin nav */}
-      {session?.user.role === 'admin' && (
+      {session?.user.role === Role.ADMIN && (
         <Link to="/users" className="text-sm text-slate-300 hover:text-white transition-colors">
           Users
         </Link>

@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { createUserSchema, editUserSchema } from '@helpdesk/core'
+import { createUserSchema, editUserSchema, Role } from '@helpdesk/core'
 import { auth } from '../lib/auth'
 import { requireAdmin } from '../middleware/requireAuth'
 import prisma from '../lib/db'
@@ -8,6 +8,7 @@ const router = Router()
 
 router.get('/', requireAdmin, async (_req, res) => {
   const users = await prisma.user.findMany({
+    where: { deletedAt: null },
     select: {
       id: true,
       name: true,
@@ -63,6 +64,14 @@ router.patch('/:id', requireAdmin, async (req, res) => {
     })
   }
   res.json(user)
+})
+
+router.delete('/:id', requireAdmin, async (req, res) => {
+  const user = await prisma.user.findUnique({ where: { id: req.params.id }, select: { role: true } })
+  if (!user) { res.status(404).json({ error: 'User not found' }); return }
+  if (user.role === Role.ADMIN) { res.status(403).json({ error: 'Admin users cannot be deleted' }); return }
+  await prisma.user.update({ where: { id: req.params.id }, data: { deletedAt: new Date() } })
+  res.status(204).end()
 })
 
 export default router

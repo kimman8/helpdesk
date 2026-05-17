@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { authClient } from '../lib/auth-client'
+import { Role } from '@helpdesk/core'
 
 export default function AdminRoute({ children }: { children: React.ReactNode }) {
   const { data, isPending } = authClient.useSession()
@@ -12,7 +13,7 @@ export default function AdminRoute({ children }: { children: React.ReactNode }) 
     return <Navigate to="/login" replace />
   }
 
-  if (data.user.role !== 'admin') {
+  if (data.user.role !== Role.ADMIN) {
     return <Navigate to="/" replace />
   }
 

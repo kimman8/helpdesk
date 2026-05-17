@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
-import { Pencil } from 'lucide-react'
+import { Role } from '@helpdesk/core'
+import { Pencil, Trash2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import EditUserModal from './EditUserModal'
+import DeleteUserModal from './DeleteUserModal'
 
 interface User {
   id: string
@@ -28,6 +30,7 @@ interface User {
 export default function UsersTable() {
   const queryClient = useQueryClient()
   const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [deletingUser, setDeletingUser] = useState<User | null>(null)
 
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['users'],
@@ -71,7 +74,7 @@ export default function UsersTable() {
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell className="text-muted-foreground">{user.email}</TableCell>
                       <TableCell>
-                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                        <Badge variant={user.role === Role.ADMIN ? 'default' : 'secondary'}>
                           {user.role}
                         </Badge>
                       </TableCell>
@@ -94,6 +97,16 @@ export default function UsersTable() {
                           <Pencil className="h-4 w-4" />
                           <span className="sr-only">Edit {user.name}</span>
                         </Button>
+                        {user.role !== Role.ADMIN && (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => setDeletingUser(user)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Delete {user.name}</span>
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))
@@ -110,6 +123,15 @@ export default function UsersTable() {
           onOpenChange={(v) => { if (!v) setEditingUser(null) }}
           onSuccess={() => queryClient.invalidateQueries({ queryKey: ['users'] })}
           user={editingUser}
+        />
+      )}
+
+      {deletingUser && (
+        <DeleteUserModal
+          open={!!deletingUser}
+          onOpenChange={(v) => { if (!v) setDeletingUser(null) }}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['users'] })}
+          user={deletingUser}
         />
       )}
     </>
