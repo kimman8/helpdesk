@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { createUserSchema } from '@helpdesk/core'
+import { createUserSchema, editUserSchema } from '@helpdesk/core'
 import { auth } from '../lib/auth'
 import { requireAdmin } from '../middleware/requireAuth'
 import prisma from '../lib/db'
@@ -43,6 +43,26 @@ router.post('/', requireAdmin, async (req, res) => {
     data: { role: 'agent' },
   })
   res.status(201).json(user)
+})
+
+router.patch('/:id', requireAdmin, async (req, res) => {
+  const result = editUserSchema.safeParse(req.body)
+  if (!result.success) {
+    res.status(400).json({ error: result.error.issues[0].message })
+    return
+  }
+  const { name, email, password } = result.data
+  const user = await prisma.user.update({
+    where: { id: req.params.id },
+    data: { name, email },
+    select: { id: true, name: true, email: true, role: true, createdAt: true, banned: true, banReason: true },
+  })
+  if (password) {
+    await auth.api.setUserPassword({
+      body: { userId: req.params.id, newPassword: password },
+    })
+  }
+  res.json(user)
 })
 
 export default router

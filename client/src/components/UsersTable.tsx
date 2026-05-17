@@ -1,7 +1,10 @@
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
+import { Pencil } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -10,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import EditUserModal from './EditUserModal'
 
 interface User {
   id: string
@@ -22,6 +26,9 @@ interface User {
 }
 
 export default function UsersTable() {
+  const queryClient = useQueryClient()
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['users'],
     queryFn: () =>
@@ -29,60 +36,82 @@ export default function UsersTable() {
   })
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base font-semibold">All users</CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        {isLoading ? (
-          <p className="text-sm text-muted-foreground px-6 py-8">Loading…</p>
-        ) : error ? (
-          <p className="text-sm text-destructive px-6 py-8">{(error as Error).message}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Joined</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.length === 0 ? (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">All users</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground px-6 py-8">Loading…</p>
+          ) : error ? (
+            <p className="text-sm text-destructive px-6 py-8">{(error as Error).message}</p>
+          ) : (
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    No users found.
-                  </TableCell>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Joined</TableHead>
+                  <TableHead />
                 </TableRow>
-              ) : (
-                users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                        {user.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {user.banned ? (
-                        <Badge variant="destructive">Banned</Badge>
-                      ) : (
-                        <Badge variant="outline">Active</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {new Date(user.createdAt).toLocaleDateString()}
+              </TableHeader>
+              <TableBody>
+                {users.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                      No users found.
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
-    </Card>
+                ) : (
+                  users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">{user.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                      <TableCell>
+                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                          {user.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {user.banned ? (
+                          <Badge variant="destructive">Banned</Badge>
+                        ) : (
+                          <Badge variant="outline">Active</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => setEditingUser(user)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">Edit {user.name}</span>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {editingUser && (
+        <EditUserModal
+          open={!!editingUser}
+          onOpenChange={(v) => { if (!v) setEditingUser(null) }}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['users'] })}
+          user={editingUser}
+        />
+      )}
+    </>
   )
 }
