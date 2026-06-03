@@ -1,6 +1,5 @@
-export const Role = {
-  ADMIN: 'admin',
-  AGENT: 'agent',
-} as const
+export enum Role {
+  ADMIN = 'admin',
+  AGENT = 'agent',
+}
 
-export type Role = (typeof Role)[keyof typeof Role]

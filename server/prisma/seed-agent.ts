@@ -8,7 +8,12 @@ const email = 'agent@example.com'
 const existing = await prisma.user.findUnique({ where: { email } })
 
 if (existing) {
-  console.log('Agent user already exists, skipping.')
+  if (existing.deletedAt) {
+    await prisma.user.update({ where: { email }, data: { deletedAt: null } })
+    console.log('Agent user was soft-deleted, restored.')
+  } else {
+    console.log('Agent user already exists, skipping.')
+  }
 } else {
   console.log(`Seeding agent user: ${email}`)
   const result = await auth.api.createUser({

@@ -17,4 +17,11 @@ signOut() clicks the button and waits for waitForURL('/login') internally.
 Wraps the dashboard at /.
 Methods: goto(), expectLoaded(), expectGreeting(firstName)
 
+## UsersPage — `e2e/pages/UsersPage.ts`
+Wraps /users, UsersTable, and the Create/Edit/Delete modals.
+Methods: goto(), waitForTableLoaded(), rowByName(name), expectRowVisible(name), expectRowGone(name),
+openCreateModal(), createUser(name, email, password),
+openEditModal(name), editUserName(userId, newName), getEditModalNameValue(), getEditModalEmailValue(),
+openDeleteModal(name), confirmDelete(userId)
+
 **How to apply:** Import these classes directly in test specs. For new pages, create a new POM in `e2e/pages/` following the same pattern.
