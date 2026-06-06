@@ -51,6 +51,20 @@ bun run dev:client   # Vite on port 5173
 
 Use `~/.bun/bin/bun` if `bun` is not yet on PATH in the current shell.
 
+## Testing philosophy
+
+**Default to component tests. Reserve e2e for what only a real browser + server can verify.**
+
+| Use component tests (Vitest + RTL) for | Use e2e tests (Playwright) for |
+|---|---|
+| Rendering logic and UI states | Real auth session behaviour |
+| Loading / empty / error states | DB round-trips (e.g. webhook → table) |
+| Badge and label mappings | Server-side sort / filter correctness |
+| Form validation and submission | API contract (status codes, response shape) |
+| Modal open/close and cancel flows | Cross-service integration |
+
+If you can mock the API response and assert on rendered output, write a component test. Only reach for e2e when the value comes from the real server or a real auth session.
+
 ## Component Testing — Vitest + React Testing Library
 - **Runner:** Vitest (configured in `client/vite.config.ts`, environment: jsdom)
 - **Libraries:** `@testing-library/react`, `@testing-library/jest-dom`, `axios-mock-adapter`

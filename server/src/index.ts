@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './lib/auth';
 import usersRouter from './routes/users';
+import ticketsRouter from './routes/tickets';
 import webhookRouter from './routes/webhooks';
 
 const app = express();
@@ -37,6 +38,7 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/api/users', usersRouter)
+app.use('/api/tickets', ticketsRouter)
 app.use('/api/webhooks', webhookRouter)
 
 app.listen(PORT, () => {

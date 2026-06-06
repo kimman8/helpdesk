@@ -1,0 +1,11 @@
+export enum TicketStatus {
+  OPEN = 'OPEN',
+  RESOLVED = 'RESOLVED',
+  CLOSED = 'CLOSED',
+}
+
+export enum TicketCategory {
+  GENERAL_QUESTION = 'GENERAL_QUESTION',
+  TECHNICAL_QUESTION = 'TECHNICAL_QUESTION',
+  REFUND_REQUEST = 'REFUND_REQUEST',
+}

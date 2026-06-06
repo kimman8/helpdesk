@@ -4,11 +4,32 @@ import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import UsersPage from './pages/UsersPage'
+import TicketsTable, { useTickets } from './components/TicketsTable'
+import { TicketStatus } from '@helpdesk/core'
 import { authClient } from './lib/auth-client'
 import { Card, CardContent } from '@/components/ui/card'
 
 function HomePage() {
   const { data: session } = authClient.useSession()
+  const { data: tickets = [], isLoading } = useTickets()
+
+  const stats = [
+    {
+      label: 'Open tickets',
+      value: isLoading ? '—' : String(tickets.filter((t) => t.status === TicketStatus.OPEN).length),
+      color: 'text-blue-600',
+    },
+    {
+      label: 'Resolved',
+      value: isLoading ? '—' : String(tickets.filter((t) => t.status === TicketStatus.RESOLVED).length),
+      color: 'text-green-600',
+    },
+    {
+      label: 'Unassigned',
+      value: isLoading ? '—' : String(tickets.filter((t) => t.status === TicketStatus.OPEN && !t.assignedTo).length),
+      color: 'text-amber-600',
+    },
+  ]
 
   return (
     <div className="min-h-screen bg-muted/40">
@@ -22,11 +43,7 @@ function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          {[
-            { label: 'Open tickets', value: '—', color: 'text-blue-600' },
-            { label: 'Resolved today', value: '—', color: 'text-green-600' },
-            { label: 'Unassigned', value: '—', color: 'text-amber-600' },
-          ].map((stat) => (
+          {stats.map((stat) => (
             <Card key={stat.label}>
               <CardContent className="pt-5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{stat.label}</p>
@@ -36,17 +53,7 @@ function HomePage() {
           ))}
         </div>
 
-        <Card>
-          <CardContent className="py-8 text-center">
-            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-              </svg>
-            </div>
-            <p className="text-sm font-medium">No tickets yet</p>
-            <p className="text-sm text-muted-foreground mt-1">Tickets will appear here once emails come in.</p>
-          </CardContent>
-        </Card>
+        <TicketsTable />
       </main>
     </div>
   )
