@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import MockAdapter from 'axios-mock-adapter'
@@ -160,5 +161,50 @@ describe('TicketsTable', () => {
   it('renders "Technical Question" for TECHNICAL_QUESTION', async () => {
     renderTable()
     await waitFor(() => expect(screen.getByText('Technical Question')).toBeInTheDocument())
+  })
+
+  // ---------------------------------------------------------------------------
+  // Sortable column headers
+  // ---------------------------------------------------------------------------
+
+  it('renders sort buttons for Subject, Status, Category, and Date headers', async () => {
+    renderTable()
+    await waitFor(() => expect(screen.getByText('My order is broken')).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: /subject/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /status/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /category/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /date/i })).toBeInTheDocument()
+  })
+
+  it('From and Assigned to headers are not sort buttons', async () => {
+    renderTable()
+    await waitFor(() => expect(screen.getByText('My order is broken')).toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: /from/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /assigned to/i })).not.toBeInTheDocument()
+  })
+
+  it('clicking a sortable header sends the correct sortBy query param', async () => {
+    const user = userEvent.setup()
+    renderTable()
+    await waitFor(() => expect(screen.getByText('My order is broken')).toBeInTheDocument())
+
+    await user.click(screen.getByRole('button', { name: /subject/i }))
+
+    await waitFor(() => {
+      const lastGet = mock.history.get.at(-1)!
+      expect(lastGet.params).toMatchObject({ sortBy: 'subject' })
+    })
+  })
+
+  it('clicking a header twice reverses the sort direction', async () => {
+    const user = userEvent.setup()
+    renderTable()
+    await waitFor(() => expect(screen.getByText('My order is broken')).toBeInTheDocument())
+
+    await user.click(screen.getByRole('button', { name: /subject/i }))
+    await waitFor(() => expect(mock.history.get.at(-1)!.params).toMatchObject({ sortBy: 'subject', sortDir: 'asc' }))
+
+    await user.click(screen.getByRole('button', { name: /subject/i }))
+    await waitFor(() => expect(mock.history.get.at(-1)!.params).toMatchObject({ sortBy: 'subject', sortDir: 'desc' }))
   })
 })

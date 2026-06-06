@@ -1,10 +1,17 @@
 import { Router } from 'express'
+import { z } from 'zod'
 import { requireAuth } from '../middleware/requireAuth'
 import prisma from '../lib/db'
 
 const router = Router()
 
-router.get('/', requireAuth, async (_req, res) => {
+const sortSchema = z.object({
+  sortBy: z.enum(['subject', 'status', 'category', 'createdAt']).default('createdAt'),
+  sortDir: z.enum(['asc', 'desc']).default('desc'),
+})
+
+router.get('/', requireAuth, async (req, res) => {
+  const { sortBy, sortDir } = sortSchema.parse(req.query)
   const tickets = await prisma.ticket.findMany({
     select: {
       id: true,
@@ -17,7 +24,7 @@ router.get('/', requireAuth, async (_req, res) => {
       createdAt: true,
       assignedUser: { select: { name: true } },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { [sortBy]: sortDir },
   })
   res.json(tickets)
 })

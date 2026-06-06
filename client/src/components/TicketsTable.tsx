@@ -1,5 +1,14 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+  type ColumnDef,
+  type SortingState,
+} from '@tanstack/react-table'
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { TicketStatus, TicketCategory } from '@helpdesk/core'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -40,16 +49,99 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-export function useTickets() {
+function SortIcon({ direction }: { direction: false | 'asc' | 'desc' }) {
+  if (direction === 'asc') return <ArrowUp className="h-3 w-3" />
+  if (direction === 'desc') return <ArrowDown className="h-3 w-3" />
+  return <ArrowUpDown className="h-3 w-3 opacity-40" />
+}
+
+const columns: ColumnDef<Ticket>[] = [
+  {
+    accessorKey: 'subject',
+    header: 'Subject',
+    enableSorting: true,
+    cell: ({ getValue }) => <span className="font-medium">{getValue() as string}</span>,
+  },
+  {
+    accessorKey: 'fromEmail',
+    header: 'From',
+    enableSorting: false,
+    cell: ({ row }) =>
+      row.original.fromName ? (
+        <>
+          <span className="text-foreground">{row.original.fromName}</span>
+          <span className="block text-xs">{row.original.fromEmail}</span>
+        </>
+      ) : (
+        row.original.fromEmail
+      ),
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    enableSorting: true,
+    cell: ({ getValue }) => {
+      const status = getValue() as TicketStatus
+      return (
+        <Badge variant={STATUS_VARIANT[status]}>
+          {status.charAt(0) + status.slice(1).toLowerCase()}
+        </Badge>
+      )
+    },
+  },
+  {
+    accessorKey: 'category',
+    header: 'Category',
+    enableSorting: true,
+    cell: ({ getValue }) => (
+      <span className="text-muted-foreground text-sm">{CATEGORY_LABEL[getValue() as TicketCategory]}</span>
+    ),
+  },
+  {
+    accessorKey: 'assignedTo',
+    header: 'Assigned to',
+    enableSorting: false,
+    cell: ({ row }) => (
+      <span className="text-muted-foreground text-sm">
+        {row.original.assignedUser?.name ?? <span className="italic">Unassigned</span>}
+      </span>
+    ),
+  },
+  {
+    accessorKey: 'createdAt',
+    header: 'Date',
+    enableSorting: true,
+    cell: ({ getValue }) => (
+      <span className="text-muted-foreground text-sm">{formatDate(getValue() as string)}</span>
+    ),
+  },
+]
+
+export function useTickets(sorting: SortingState = []) {
+  const sortBy = sorting[0]?.id ?? 'createdAt'
+  const sortDir = sorting[0]?.desc === false ? 'asc' : 'desc'
+
   return useQuery({
-    queryKey: ['tickets'],
+    queryKey: ['tickets', sortBy, sortDir],
     queryFn: () =>
-      axios.get<Ticket[]>('/api/tickets', { withCredentials: true }).then((r) => r.data),
+      axios
+        .get<Ticket[]>('/api/tickets', { params: { sortBy, sortDir }, withCredentials: true })
+        .then((r) => r.data),
   })
 }
 
 export default function TicketsTable() {
-  const { data: tickets = [], isLoading, error } = useTickets()
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }])
+  const { data: tickets = [], isLoading, error } = useTickets(sorting)
+
+  const table = useReactTable({
+    data: tickets,
+    columns,
+    state: { sorting },
+    onSortingChange: setSorting,
+    manualSorting: true,
+    getCoreRowModel: getCoreRowModel(),
+  })
 
   return (
     <Card>
@@ -69,43 +161,34 @@ export default function TicketsTable() {
         ) : (
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Subject</TableHead>
-                <TableHead>From</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Assigned to</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.column.getCanSort() ? (
+                        <button
+                          className="flex items-center gap-1.5 hover:text-foreground transition-colors"
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          <SortIcon direction={header.column.getIsSorted()} />
+                        </button>
+                      ) : (
+                        flexRender(header.column.columnDef.header, header.getContext())
+                      )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
             </TableHeader>
             <TableBody>
-              {tickets.map((ticket) => (
-                <TableRow key={ticket.id}>
-                  <TableCell className="font-medium">{ticket.subject}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {ticket.fromName ? (
-                      <>
-                        <span className="text-foreground">{ticket.fromName}</span>
-                        <span className="block text-xs">{ticket.fromEmail}</span>
-                      </>
-                    ) : (
-                      ticket.fromEmail
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={STATUS_VARIANT[ticket.status]}>
-                      {ticket.status.charAt(0) + ticket.status.slice(1).toLowerCase()}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {CATEGORY_LABEL[ticket.category]}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {ticket.assignedUser?.name ?? <span className="italic">Unassigned</span>}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {formatDate(ticket.createdAt)}
-                  </TableCell>
+              {table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
                 </TableRow>
               ))}
             </TableBody>
