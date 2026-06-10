@@ -81,7 +81,7 @@ describe('TicketsTable', () => {
   it('shows an empty state when no tickets are returned', async () => {
     mock.onGet('/api/tickets').reply(200, [])
     renderTable()
-    await waitFor(() => expect(screen.getByText('No tickets yet')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('No tickets found')).toBeInTheDocument())
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
