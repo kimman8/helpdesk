@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import {
@@ -11,6 +12,7 @@ import {
 } from '@tanstack/react-table'
 import { ArrowUpDown, ArrowUp, ArrowDown, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { TicketStatus, TicketCategory } from '@helpdesk/core'
+import { type Ticket, type TicketPage, type TicketFilters, STATUS_VARIANT, CATEGORY_LABEL, formatDate } from '@/lib/tickets'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -31,31 +33,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-export interface Ticket {
-  id: string
-  subject: string
-  status: TicketStatus
-  category: TicketCategory
-  fromEmail: string
-  fromName: string | null
-  assignedTo: string | null
-  createdAt: string
-  assignedUser: { name: string } | null
-}
-
-export interface TicketPage {
-  data: Ticket[]
-  total: number
-  page: number
-  pageSize: number
-  pageCount: number
-}
-
-export interface TicketFilters {
-  status?: TicketStatus
-  category?: TicketCategory
-  search?: string
-}
+export type { Ticket, TicketPage, TicketFilters }
 
 function useDebounce<T>(value: T, delay = 300): T {
   const [debounced, setDebounced] = useState(value)
@@ -64,22 +42,6 @@ function useDebounce<T>(value: T, delay = 300): T {
     return () => clearTimeout(id)
   }, [value, delay])
   return debounced
-}
-
-const STATUS_VARIANT: Record<TicketStatus, 'default' | 'secondary' | 'outline'> = {
-  [TicketStatus.OPEN]: 'default',
-  [TicketStatus.RESOLVED]: 'secondary',
-  [TicketStatus.CLOSED]: 'outline',
-}
-
-const CATEGORY_LABEL: Record<TicketCategory, string> = {
-  [TicketCategory.GENERAL_QUESTION]: 'General Question',
-  [TicketCategory.TECHNICAL_QUESTION]: 'Technical Question',
-  [TicketCategory.REFUND_REQUEST]: 'Refund Request',
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function SortIcon({ direction }: { direction: false | 'asc' | 'desc' }) {
@@ -93,7 +55,14 @@ const columns: ColumnDef<Ticket>[] = [
     accessorKey: 'subject',
     header: 'Subject',
     enableSorting: true,
-    cell: ({ getValue }) => <span className="font-medium">{getValue() as string}</span>,
+    cell: ({ row }) => (
+      <Link
+        to={`/tickets/${row.original.id}`}
+        className="font-medium hover:underline"
+      >
+        {row.original.subject}
+      </Link>
+    ),
   },
   {
     accessorKey: 'fromEmail',

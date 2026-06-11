@@ -7,6 +7,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import UsersPage from './pages/UsersPage'
 import TicketsTable from './components/TicketsTable'
+import TicketDetailPage from './pages/TicketDetailPage'
 import { authClient } from './lib/auth-client'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -76,6 +77,14 @@ export default function App() {
           <AdminRoute>
             <UsersPage />
           </AdminRoute>
+        }
+      />
+      <Route
+        path="/tickets/:id"
+        element={
+          <ProtectedRoute>
+            <TicketDetailPage />
+          </ProtectedRoute>
         }
       />
       <Route path="*" element={<Navigate to="/" replace />} />
