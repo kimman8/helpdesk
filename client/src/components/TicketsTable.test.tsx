@@ -46,9 +46,13 @@ const TICKETS = [
 
 let mock: MockAdapter
 
+function pageResponse(tickets = TICKETS) {
+  return { data: tickets, total: tickets.length, page: 1, pageSize: 10, pageCount: 1 }
+}
+
 beforeEach(() => {
   mock = new MockAdapter(axios)
-  mock.onGet('/api/tickets').reply(200, TICKETS)
+  mock.onGet('/api/tickets').reply(200, pageResponse())
 })
 
 afterEach(() => {
@@ -79,7 +83,7 @@ describe('TicketsTable', () => {
   })
 
   it('shows an empty state when no tickets are returned', async () => {
-    mock.onGet('/api/tickets').reply(200, [])
+    mock.onGet('/api/tickets').reply(200, pageResponse([]))
     renderTable()
     await waitFor(() => expect(screen.getByText('No tickets found')).toBeInTheDocument())
     expect(screen.queryByRole('table')).not.toBeInTheDocument()

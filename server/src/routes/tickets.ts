@@ -2,45 +2,74 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { requireAuth } from '../middleware/requireAuth'
 import prisma from '../lib/db'
+import type { TicketStatus, TicketCategory } from '../generated/prisma/enums'
 
 const router = Router()
 
 const querySchema = z.object({
   sortBy:   z.enum(['subject', 'status', 'category', 'createdAt']).default('createdAt'),
   sortDir:  z.enum(['asc', 'desc']).default('desc'),
-  status:   z.enum(['OPEN', 'RESOLVED', 'CLOSED']).optional(),
-  category: z.enum(['GENERAL_QUESTION', 'TECHNICAL_QUESTION', 'REFUND_REQUEST']).optional(),
+  status:   z.enum(['OPEN', 'RESOLVED', 'CLOSED']).transform((v) => v as TicketStatus).optional(),
+  category: z.enum(['GENERAL_QUESTION', 'TECHNICAL_QUESTION', 'REFUND_REQUEST']).transform((v) => v as TicketCategory).optional(),
   search:   z.string().trim().optional(),
+  page:     z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+})
+
+type ParsedQuery = z.infer<typeof querySchema>
+
+function buildWhere({ status, category, search }: Pick<ParsedQuery, 'status' | 'category' | 'search'>) {
+  return {
+    ...(status   ? { status }   : {}),
+    ...(category ? { category } : {}),
+    ...(search   ? {
+      OR: [
+        { subject:   { contains: search, mode: 'insensitive' as const } },
+        { fromEmail: { contains: search, mode: 'insensitive' as const } },
+        { fromName:  { contains: search, mode: 'insensitive' as const } },
+      ],
+    } : {}),
+  }
+}
+
+const SELECT = {
+  id: true,
+  subject: true,
+  status: true,
+  category: true,
+  fromEmail: true,
+  fromName: true,
+  assignedTo: true,
+  createdAt: true,
+  assignedUser: { select: { name: true } },
+} as const
+
+router.get('/stats', requireAuth, async (_req, res) => {
+  const [open, resolved, closed, unassigned] = await Promise.all([
+    prisma.ticket.count({ where: { status: 'OPEN' } }),
+    prisma.ticket.count({ where: { status: 'RESOLVED' } }),
+    prisma.ticket.count({ where: { status: 'CLOSED' } }),
+    prisma.ticket.count({ where: { status: 'OPEN', assignedTo: null } }),
+  ])
+  res.json({ open, resolved, closed, unassigned })
 })
 
 router.get('/', requireAuth, async (req, res) => {
-  const { sortBy, sortDir, status, category, search } = querySchema.parse(req.query)
-  const tickets = await prisma.ticket.findMany({
-    where: {
-      ...(status   ? { status }   : {}),
-      ...(category ? { category } : {}),
-      ...(search   ? {
-        OR: [
-          { subject:   { contains: search, mode: 'insensitive' } },
-          { fromEmail: { contains: search, mode: 'insensitive' } },
-          { fromName:  { contains: search, mode: 'insensitive' } },
-        ],
-      } : {}),
-    },
-    select: {
-      id: true,
-      subject: true,
-      status: true,
-      category: true,
-      fromEmail: true,
-      fromName: true,
-      assignedTo: true,
-      createdAt: true,
-      assignedUser: { select: { name: true } },
-    },
-    orderBy: { [sortBy]: sortDir },
-  })
-  res.json(tickets)
+  const { sortBy, sortDir, status, category, search, page, pageSize } = querySchema.parse(req.query)
+  const where = buildWhere({ status, category, search })
+
+  const [data, total] = await Promise.all([
+    prisma.ticket.findMany({
+      where,
+      select: SELECT,
+      orderBy: { [sortBy]: sortDir },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.ticket.count({ where }),
+  ])
+
+  res.json({ data, total, page, pageSize, pageCount: Math.ceil(total / pageSize) })
 })
 
 export default router

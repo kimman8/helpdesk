@@ -1,34 +1,33 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import axios from 'axios'
 import LoginPage from './pages/LoginPage'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import UsersPage from './pages/UsersPage'
-import TicketsTable, { useTickets } from './components/TicketsTable'
-import { TicketStatus } from '@helpdesk/core'
+import TicketsTable from './components/TicketsTable'
 import { authClient } from './lib/auth-client'
 import { Card, CardContent } from '@/components/ui/card'
 
+interface TicketStats { open: number; resolved: number; closed: number; unassigned: number }
+
+function useTicketStats() {
+  return useQuery({
+    queryKey: ['tickets', 'stats'],
+    queryFn: () =>
+      axios.get<TicketStats>('/api/tickets/stats', { withCredentials: true }).then((r) => r.data),
+  })
+}
+
 function HomePage() {
   const { data: session } = authClient.useSession()
-  const { data: tickets = [], isLoading } = useTickets()
+  const { data: stats, isLoading } = useTicketStats()
 
-  const stats = [
-    {
-      label: 'Open tickets',
-      value: isLoading ? '—' : String(tickets.filter((t) => t.status === TicketStatus.OPEN).length),
-      color: 'text-blue-600',
-    },
-    {
-      label: 'Resolved',
-      value: isLoading ? '—' : String(tickets.filter((t) => t.status === TicketStatus.RESOLVED).length),
-      color: 'text-green-600',
-    },
-    {
-      label: 'Unassigned',
-      value: isLoading ? '—' : String(tickets.filter((t) => t.status === TicketStatus.OPEN && !t.assignedTo).length),
-      color: 'text-amber-600',
-    },
+  const statCards = [
+    { label: 'Open tickets', value: isLoading ? '—' : String(stats?.open ?? 0),       color: 'text-blue-600' },
+    { label: 'Resolved',     value: isLoading ? '—' : String(stats?.resolved ?? 0),   color: 'text-green-600' },
+    { label: 'Unassigned',   value: isLoading ? '—' : String(stats?.unassigned ?? 0), color: 'text-amber-600' },
   ]
 
   return (
@@ -43,7 +42,7 @@ function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          {stats.map((stat) => (
+          {statCards.map((stat) => (
             <Card key={stat.label}>
               <CardContent className="pt-5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{stat.label}</p>

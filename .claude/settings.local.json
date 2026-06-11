@@ -57,7 +57,8 @@
       "Bash(bun add *)",
       "Bash(bunx prisma *)",
       "Bash(psql *)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(bunx tsc *)"
     ]
   }
 }
