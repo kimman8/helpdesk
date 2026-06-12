@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { ArrowLeft } from 'lucide-react'
 import { TicketStatus, TicketCategory } from '@helpdesk/core'
@@ -8,6 +8,13 @@ import Navbar from '../components/Navbar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 interface Message {
   id: string
@@ -32,6 +39,11 @@ interface TicketDetail {
   messages: Message[]
 }
 
+interface Agent {
+  id: string
+  name: string | null
+}
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
     month: 'short', day: 'numeric', year: 'numeric',
@@ -47,10 +59,28 @@ function useTicket(id: string) {
   })
 }
 
+function useAgents() {
+  return useQuery({
+    queryKey: ['agents'],
+    queryFn: () =>
+      axios.get<Agent[]>('/api/tickets/agents', { withCredentials: true }).then((r) => r.data),
+  })
+}
+
 export default function TicketDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { data: ticket, isLoading, error } = useTicket(id!)
+  const { data: agents = [] } = useAgents()
+
+  async function handleAssign(value: string | null) {
+    if (value === null) return
+    const assignedTo = value === 'unassigned' ? null : value
+    await axios.patch(`/api/tickets/${id}`, { assignedTo }, { withCredentials: true })
+    queryClient.invalidateQueries({ queryKey: ['tickets', id] })
+    queryClient.invalidateQueries({ queryKey: ['tickets'] })
+  }
 
   return (
     <div className="min-h-screen bg-muted/40">
@@ -90,8 +120,25 @@ export default function TicketDetailPage() {
                   {ticket.fromName && <p className="text-xs text-muted-foreground">{ticket.fromEmail}</p>}
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Assigned to</p>
-                  <p className="font-medium">{ticket.assignedUser?.name ?? <span className="italic text-muted-foreground">Unassigned</span>}</p>
+                  <p className="text-muted-foreground mb-1.5">Assigned to</p>
+                  <Select
+                    value={ticket.assignedTo ?? 'unassigned'}
+                    onValueChange={handleAssign}
+                  >
+                    <SelectTrigger className="h-8 text-xs w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">
+                        <span className="italic text-muted-foreground">Unassigned</span>
+                      </SelectItem>
+                      {agents.map((agent) => (
+                        <SelectItem key={agent.id} value={agent.id}>
+                          {agent.name ?? agent.id}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Created</p>

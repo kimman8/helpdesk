@@ -44,6 +44,48 @@ const SELECT = {
   assignedUser: { select: { name: true } },
 } as const
 
+router.get('/agents', requireAuth, async (_req, res) => {
+  const agents = await prisma.user.findMany({
+    where: { role: 'agent', deletedAt: null, banned: false },
+    select: { id: true, name: true },
+    orderBy: { name: 'asc' },
+  })
+  res.json(agents)
+})
+
+const assignSchema = z.object({
+  assignedTo: z.string().nullable(),
+})
+
+router.patch('/:id', requireAuth, async (req, res) => {
+  const result = assignSchema.safeParse(req.body)
+  if (!result.success) {
+    res.status(400).json({ error: result.error.issues[0].message })
+    return
+  }
+
+  const { assignedTo } = result.data
+
+  if (assignedTo !== null) {
+    const agent = await prisma.user.findUnique({
+      where: { id: assignedTo },
+      select: { role: true, deletedAt: true },
+    })
+    if (!agent || agent.deletedAt || agent.role !== 'agent') {
+      res.status(400).json({ error: 'Invalid agent' })
+      return
+    }
+  }
+
+  const ticket = await prisma.ticket.update({
+    where: { id: req.params.id },
+    data: { assignedTo },
+    select: { ...SELECT, updatedAt: true },
+  })
+
+  res.json(ticket)
+})
+
 router.get('/stats', requireAuth, async (_req, res) => {
   const [open, resolved, closed, unassigned] = await Promise.all([
     prisma.ticket.count({ where: { status: 'OPEN' } }),
