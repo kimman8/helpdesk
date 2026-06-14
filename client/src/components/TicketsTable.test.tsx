@@ -180,7 +180,7 @@ describe('TicketsTable', () => {
     expect(screen.getByRole('button', { name: /date/i })).toBeInTheDocument()
   })
 
-  it('From and Assigned to headers are not sort buttons', async () => {
+  it('From and Assigned To headers are not sort buttons', async () => {
     renderTable()
     await waitFor(() => expect(screen.getByText('My order is broken')).toBeInTheDocument())
     expect(screen.queryByRole('button', { name: /from/i })).not.toBeInTheDocument()

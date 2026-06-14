@@ -53,20 +53,22 @@ router.get('/agents', requireAuth, async (_req, res) => {
   res.json(agents)
 })
 
-const assignSchema = z.object({
-  assignedTo: z.string().nullable(),
+const patchSchema = z.object({
+  assignedTo: z.string().nullable().optional(),
+  status:     z.enum(['OPEN', 'RESOLVED', 'CLOSED']).transform((v) => v as TicketStatus).optional(),
+  category:   z.enum(['GENERAL_QUESTION', 'TECHNICAL_QUESTION', 'REFUND_REQUEST']).transform((v) => v as TicketCategory).optional(),
 })
 
 router.patch('/:id', requireAuth, async (req, res) => {
-  const result = assignSchema.safeParse(req.body)
+  const result = patchSchema.safeParse(req.body)
   if (!result.success) {
     res.status(400).json({ error: result.error.issues[0].message })
     return
   }
 
-  const { assignedTo } = result.data
+  const { assignedTo, status, category } = result.data
 
-  if (assignedTo !== null) {
+  if (assignedTo !== undefined && assignedTo !== null) {
     const agent = await prisma.user.findUnique({
       where: { id: assignedTo },
       select: { role: true, deletedAt: true },
@@ -79,7 +81,11 @@ router.patch('/:id', requireAuth, async (req, res) => {
 
   const ticket = await prisma.ticket.update({
     where: { id: req.params.id },
-    data: { assignedTo },
+    data: {
+      ...(assignedTo !== undefined ? { assignedTo } : {}),
+      ...(status   !== undefined   ? { status }     : {}),
+      ...(category !== undefined   ? { category }   : {}),
+    },
     select: { ...SELECT, updatedAt: true },
   })
 

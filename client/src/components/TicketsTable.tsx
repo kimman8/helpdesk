@@ -101,7 +101,7 @@ const columns: ColumnDef<Ticket>[] = [
   },
   {
     accessorKey: 'assignedTo',
-    header: 'Assigned to',
+    header: 'Assigned To',
     enableSorting: false,
     cell: ({ row }) => (
       <span className="text-muted-foreground text-sm">
@@ -202,10 +202,10 @@ export default function TicketsTable() {
             }
           >
             <SelectTrigger className="h-8 w-36 text-xs">
-              <SelectValue placeholder="All statuses" />
+              <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value={TicketStatus.OPEN}>Open</SelectItem>
               <SelectItem value={TicketStatus.RESOLVED}>Resolved</SelectItem>
               <SelectItem value={TicketStatus.CLOSED}>Closed</SelectItem>
@@ -219,10 +219,10 @@ export default function TicketsTable() {
             }
           >
             <SelectTrigger className="h-8 w-44 text-xs">
-              <SelectValue placeholder="All categories" />
+              <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               <SelectItem value={TicketCategory.GENERAL_QUESTION}>General Question</SelectItem>
               <SelectItem value={TicketCategory.TECHNICAL_QUESTION}>Technical Question</SelectItem>
               <SelectItem value={TicketCategory.REFUND_REQUEST}>Refund Request</SelectItem>
