@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { requireAuth } from '../middleware/requireAuth'
+import { createReplySchema } from '@helpdesk/core'
 import prisma from '../lib/db'
 import type { TicketStatus, TicketCategory } from '../generated/prisma/enums'
 
@@ -146,6 +147,36 @@ router.get('/:id', requireAuth, async (req, res) => {
   }
 
   res.json(ticket)
+})
+
+router.post('/:id/replies', requireAuth, async (req, res) => {
+  const result = createReplySchema.safeParse(req.body)
+  if (!result.success) {
+    res.status(400).json({ error: result.error.issues[0].message })
+    return
+  }
+
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: req.params.id },
+    select: { id: true },
+  })
+  if (!ticket) {
+    res.status(404).json({ error: 'Ticket not found' })
+    return
+  }
+
+  const message = await prisma.message.create({
+    data: {
+      ticketId: req.params.id,
+      body: result.data.body,
+      fromEmail: req.user.email,
+      fromName: req.user.name ?? null,
+      isAgent: true,
+    },
+    select: { id: true, body: true, fromEmail: true, fromName: true, isAgent: true, createdAt: true },
+  })
+
+  res.status(201).json(message)
 })
 
 export default router

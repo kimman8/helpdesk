@@ -1,16 +1,18 @@
 /**
- * Authentication e2e tests — covers every scenario listed in the brief:
+ * Authentication e2e tests — only what requires a real browser + server.
  *
- *  1. Login form — valid credentials (admin + agent), wrong password,
- *     wrong email, empty fields, invalid email format
- *  2. Session persistence — staying logged in after a full page reload
- *  3. Protected routes — unauthenticated users are redirected to /login
- *  4. Admin-only routes — agents are redirected to /, admins can access /users
- *  5. Navbar — Users link visibility per role
- *  6. Sign out — redirects to /login; protected route then redirects again
+ * Client-side validation (Zod/RHF), form rendering, navbar visibility per
+ * role, and sign-out button presence are all covered by component tests
+ * (Vitest + RTL) and do not belong here.
  *
- * Authentication for "already logged in" tests uses storageState so the login
- * UI is not exercised repeatedly — each role logs in once in auth.setup.ts.
+ * What we verify here:
+ *  1. Login form — happy paths (real Better Auth session created)
+ *  2. Login form — wrong credentials (real server error from Better Auth)
+ *  3. Already-authenticated redirect (real session in cookie)
+ *  4. Session persistence — stays logged in after a full page reload
+ *  5. Protected routes — unauthenticated users are redirected to /login
+ *  6. Admin-only routes — agents are redirected to /, admins can access /users
+ *  7. Sign out — session is destroyed; protected routes redirect again
  */
 
 import { test, expect } from '@playwright/test'
@@ -20,7 +22,7 @@ import { NavbarComponent } from '../../pages/NavbarComponent'
 import { HomePage } from '../../pages/HomePage'
 
 // ---------------------------------------------------------------------------
-// 1. Login form — unauthenticated browser (no storageState)
+// 1. Login form — server interactions only
 // ---------------------------------------------------------------------------
 
 test.describe('Login form', () => {
@@ -31,32 +33,7 @@ test.describe('Login form', () => {
     await loginPage.goto()
   })
 
-  // -------------------------------------------------------------------------
-  // Page structure
-  // -------------------------------------------------------------------------
-
-  test('renders the login form with all expected elements', async ({ page }) => {
-    await expect(loginPage.heading).toBeVisible()
-    await expect(page.getByText('Sign in to your account')).toBeVisible()
-    await expect(loginPage.emailInput).toBeVisible()
-    await expect(loginPage.passwordInput).toBeVisible()
-    await expect(loginPage.submitButton).toBeVisible()
-    await expect(loginPage.submitButton).toBeEnabled()
-
-    // No errors on initial render
-    await expect(loginPage.serverErrorBanner).not.toBeVisible()
-  })
-
-  test('email field has autofocus', async ({ page }) => {
-    await expect(loginPage.emailInput).toBeFocused()
-  })
-
-  // -------------------------------------------------------------------------
-  // Happy paths
-  // -------------------------------------------------------------------------
-
   test('admin can log in with valid credentials and is redirected to /', async ({ page }) => {
-    // Intercept the sign-in request so we can assert on it explicitly
     const signInResponsePromise = page.waitForResponse(
       (resp) => resp.url().includes('/api/auth/sign-in/email') && resp.status() === 200,
     )
@@ -66,7 +43,6 @@ test.describe('Login form', () => {
     await signInResponsePromise
     await expect(page).toHaveURL('/')
 
-    // The dashboard greeting should mention the admin's first name
     const home = new HomePage(page)
     await home.expectGreeting('Admin')
   })
@@ -85,10 +61,6 @@ test.describe('Login form', () => {
     await home.expectGreeting('Agent')
   })
 
-  // -------------------------------------------------------------------------
-  // Wrong credentials — server-side errors
-  // -------------------------------------------------------------------------
-
   test('shows server error banner when password is incorrect', async ({ page }) => {
     const signInResponsePromise = page.waitForResponse(
       (resp) => resp.url().includes('/api/auth/sign-in/email'),
@@ -98,7 +70,6 @@ test.describe('Login form', () => {
 
     await signInResponsePromise
 
-    // Must stay on /login — no redirect
     await expect(page).toHaveURL('/login')
     await loginPage.expectServerError('Invalid email or password.')
   })
@@ -113,15 +84,12 @@ test.describe('Login form', () => {
     await signInResponsePromise
 
     await expect(page).toHaveURL('/login')
-    // The banner must be visible regardless of the exact message text from
-    // Better Auth — we verify the UI element appears, not the server string.
     await expect(loginPage.serverErrorBanner).toBeVisible()
   })
 
   test('server error banner is cleared when the user starts a new login attempt', async ({
     page,
   }) => {
-    // Trigger an error first
     const firstResponse = page.waitForResponse((resp) =>
       resp.url().includes('/api/auth/sign-in/email'),
     )
@@ -129,79 +97,19 @@ test.describe('Login form', () => {
     await firstResponse
     await expect(loginPage.serverErrorBanner).toBeVisible()
 
-    // Now attempt again — the banner should disappear while the request is
-    // in-flight (setServerError(null) runs at the top of onSubmit)
     const secondResponse = page.waitForResponse((resp) =>
       resp.url().includes('/api/auth/sign-in/email'),
     )
     await loginPage.login(TEST_USERS.admin.email, TEST_USERS.admin.password)
     await secondResponse
 
-    // After a successful login the page navigates away — banner is gone
     await expect(page).toHaveURL('/')
   })
 
-  // -------------------------------------------------------------------------
-  // Client-side validation (Zod / React Hook Form — no network request)
-  // -------------------------------------------------------------------------
-
-  test('shows email validation error when email field is empty on submit', async ({ page }) => {
-    // Leave email empty, fill password, submit
-    await loginPage.fillPassword('anything')
-    await loginPage.submit()
-
-    // RHF + Zod validates before sending — no network request
-    await loginPage.expectEmailError('Enter a valid email address')
-    await expect(page).toHaveURL('/login')
-  })
-
-  test('shows password validation error when password field is empty on submit', async ({
-    page,
-  }) => {
-    await loginPage.fillEmail(TEST_USERS.admin.email)
-    await loginPage.submit()
-
-    await loginPage.expectPasswordError('Password is required')
-    await expect(page).toHaveURL('/login')
-  })
-
-  test('shows both validation errors when both fields are empty on submit', async ({ page }) => {
-    await loginPage.submit()
-
-    await loginPage.expectEmailError('Enter a valid email address')
-    await loginPage.expectPasswordError('Password is required')
-    await expect(page).toHaveURL('/login')
-  })
-
-  test('shows email format validation error for a malformed email', async ({ page }) => {
-    await loginPage.fillEmail('not-an-email')
-    await loginPage.fillPassword('password123')
-    await loginPage.submit()
-
-    await loginPage.expectEmailError('Enter a valid email address')
-    // No server request should have been made
-    await expect(page).toHaveURL('/login')
-  })
-
-  test('shows email format validation error for email missing TLD', async ({ page }) => {
-    await loginPage.fillEmail('user@nodomain')
-    await loginPage.fillPassword('password123')
-    await loginPage.submit()
-
-    await loginPage.expectEmailError('Enter a valid email address')
-    await expect(page).toHaveURL('/login')
-  })
-
-  // -------------------------------------------------------------------------
-  // Already-authenticated redirect
-  // -------------------------------------------------------------------------
-
   test('redirects an already-authenticated user away from /login to /', async ({ page }) => {
-    // Log in first
     await loginPage.login(TEST_USERS.admin.email, TEST_USERS.admin.password)
     await expect(page).toHaveURL('/')
 
-    // Navigating back to /login should redirect back to /
     await page.goto('/login')
     await expect(page).toHaveURL('/')
   })
@@ -220,18 +128,14 @@ test.describe('Session persistence', () => {
 
     await page.reload()
 
-    // After reload the session cookie is re-sent; ProtectedRoute should
-    // remain satisfied and not redirect to /login.
     await expect(page).toHaveURL('/')
     const home = new HomePage(page)
     await home.expectGreeting('Admin')
   })
 
   test('agent session survives a full page reload', async ({ page, context }) => {
-    // Override the storageState for this single test
     await context.clearCookies()
 
-    // Re-authenticate as agent for this isolated test
     const loginPage = new LoginPage(page)
     await loginPage.goto()
     await loginPage.login(TEST_USERS.agent.email, TEST_USERS.agent.password)
@@ -249,8 +153,6 @@ test.describe('Session persistence', () => {
 // ---------------------------------------------------------------------------
 
 test.describe('Protected routes — unauthenticated', () => {
-  // Explicitly no storageState — fresh unauthenticated browser context
-
   test('visiting / without a session redirects to /login', async ({ page }) => {
     await page.goto('/')
     await expect(page).toHaveURL('/login')
@@ -262,8 +164,6 @@ test.describe('Protected routes — unauthenticated', () => {
   })
 
   test('visiting an unknown route without a session redirects to /login', async ({ page }) => {
-    // App has <Route path="*" element={<Navigate to="/" replace />} />
-    // which hits ProtectedRoute, so the chain is: * → / → /login
     await page.goto('/some/unknown/path')
     await expect(page).toHaveURL('/login')
   })
@@ -296,70 +196,14 @@ test.describe('Admin-only routes — agent user', () => {
 
   test('agent is redirected from /users to / (not to /login)', async ({ page }) => {
     await page.goto('/users')
-    // AdminRoute redirects authenticated non-admins to / (not /login)
     await expect(page).toHaveURL('/')
-    // Confirm it's the home page and not the login page
     const home = new HomePage(page)
     await home.expectLoaded()
   })
 })
 
 // ---------------------------------------------------------------------------
-// 5. Navbar — role-based link visibility
-// ---------------------------------------------------------------------------
-
-test.describe('Navbar — admin role', () => {
-  test.use({ storageState: adminStorageState })
-
-  test('shows the Users navigation link', async ({ page }) => {
-    await page.goto('/')
-    const navbar = new NavbarComponent(page)
-    await navbar.expectUsersLinkVisible()
-  })
-
-  test('shows the user name in the navbar', async ({ page }) => {
-    await page.goto('/')
-    const navbar = new NavbarComponent(page)
-    await navbar.expectUserName(TEST_USERS.admin.name)
-  })
-
-  test('shows the Sign out button', async ({ page }) => {
-    await page.goto('/')
-    const navbar = new NavbarComponent(page)
-    await navbar.expectSignOutVisible()
-  })
-
-  test('Users link is visible on the /users page itself', async ({ page }) => {
-    await page.goto('/users')
-    const navbar = new NavbarComponent(page)
-    await navbar.expectUsersLinkVisible()
-  })
-})
-
-test.describe('Navbar — agent role', () => {
-  test.use({ storageState: agentStorageState })
-
-  test('does NOT show the Users navigation link', async ({ page }) => {
-    await page.goto('/')
-    const navbar = new NavbarComponent(page)
-    await navbar.expectUsersLinkHidden()
-  })
-
-  test('shows the user name in the navbar', async ({ page }) => {
-    await page.goto('/')
-    const navbar = new NavbarComponent(page)
-    await navbar.expectUserName(TEST_USERS.agent.name)
-  })
-
-  test('shows the Sign out button', async ({ page }) => {
-    await page.goto('/')
-    const navbar = new NavbarComponent(page)
-    await navbar.expectSignOutVisible()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// 6. Sign out
+// 5. Sign out — session destruction
 // ---------------------------------------------------------------------------
 
 test.describe('Sign out — admin', () => {
@@ -368,10 +212,7 @@ test.describe('Sign out — admin', () => {
   test('clicking Sign out redirects to /login', async ({ page }) => {
     await page.goto('/')
     const navbar = new NavbarComponent(page)
-
-    // waitForURL is inside NavbarComponent.signOut()
     await navbar.signOut()
-
     await expect(page).toHaveURL('/login')
   })
 
@@ -383,35 +224,20 @@ test.describe('Sign out — admin', () => {
     await navbar.signOut()
     await expect(page).toHaveURL('/login')
 
-    // Attempt to access a protected route — must redirect back to /login
     await page.goto('/')
     await expect(page).toHaveURL('/login')
-  })
-
-  test('after signing out, the login form is fully interactive again', async ({ page }) => {
-    await page.goto('/')
-    const navbar = new NavbarComponent(page)
-    await navbar.signOut()
-
-    const loginPage = new LoginPage(page)
-    await expect(loginPage.emailInput).toBeVisible()
-    await expect(loginPage.passwordInput).toBeVisible()
-    await expect(loginPage.submitButton).toBeEnabled()
   })
 
   test('after signing out, the user can log back in as a different role', async ({ page }) => {
-    // Sign out from admin
     await page.goto('/')
     const navbar = new NavbarComponent(page)
     await navbar.signOut()
     await expect(page).toHaveURL('/login')
 
-    // Now log in as agent
     const loginPage = new LoginPage(page)
     await loginPage.login(TEST_USERS.agent.email, TEST_USERS.agent.password)
     await expect(page).toHaveURL('/')
 
-    // Agent navbar — no Users link
     const agentNavbar = new NavbarComponent(page)
     await agentNavbar.expectUsersLinkHidden()
     await agentNavbar.expectUserName(TEST_USERS.agent.name)

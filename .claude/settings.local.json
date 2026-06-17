@@ -58,7 +58,12 @@
       "Bash(bunx prisma *)",
       "Bash(psql *)",
       "Bash(curl *)",
-      "Bash(bunx tsc *)"
+      "Bash(bunx tsc *)",
+      "Bash(npx shadcn@latest add textarea --yes)",
+      "Skill(run)",
+      "Bash(npx -y chromium-cli screenshot http://localhost:5173/ /tmp/helpdesk-home.png)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(npx playwright *)"
     ]
   }
 }

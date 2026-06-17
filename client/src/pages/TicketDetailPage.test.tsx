@@ -94,9 +94,9 @@ async function waitForTicket() {
 }
 
 describe('TicketDetailPage', () => {
-  it('shows a loading state initially', () => {
+  it('shows a skeleton loading state initially', () => {
     renderPage()
-    expect(screen.getByText('Loading…')).toBeInTheDocument()
+    expect(document.querySelectorAll('[data-slot="skeleton"]').length).toBeGreaterThan(0)
   })
 
   it('renders the ticket subject as the page heading', async () => {
@@ -266,6 +266,81 @@ describe('TicketDetailPage', () => {
       renderPage()
       await waitFor(() => expect(screen.getByText('Hello, my printer is on fire!')).toBeInTheDocument())
       expect(screen.getAllByText(/Agent|John Customer|Alice Agent/).length).toBeGreaterThanOrEqual(2)
+    })
+  })
+
+  describe('reply form', () => {
+    beforeEach(() => {
+      mock.onPost('/api/tickets/ticket-1/replies').reply(201, {})
+    })
+
+    it('renders the reply textarea and submit button after the ticket loads', async () => {
+      renderPage()
+      await waitForTicket()
+      expect(screen.getByLabelText('Reply body')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Send Reply' })).toBeInTheDocument()
+    })
+
+    it('shows a validation error when submitted with an empty body', async () => {
+      const user = userEvent.setup()
+      renderPage()
+      await waitForTicket()
+      await user.click(screen.getByRole('button', { name: 'Send Reply' }))
+      expect(screen.getByText('Reply cannot be empty')).toBeInTheDocument()
+      expect(mock.history.post.length).toBe(0)
+    })
+
+    it('shows a validation error when the body is whitespace only', async () => {
+      const user = userEvent.setup()
+      renderPage()
+      await waitForTicket()
+      await user.type(screen.getByLabelText('Reply body'), '   ')
+      await user.click(screen.getByRole('button', { name: 'Send Reply' }))
+      expect(screen.getByText('Reply cannot be empty')).toBeInTheDocument()
+      expect(mock.history.post.length).toBe(0)
+    })
+
+    it('posts the reply body to the correct endpoint on success', async () => {
+      const user = userEvent.setup()
+      renderPage()
+      await waitForTicket()
+      await user.type(screen.getByLabelText('Reply body'), 'Thanks for reaching out.')
+      await user.click(screen.getByRole('button', { name: 'Send Reply' }))
+      await waitFor(() => expect(mock.history.post.length).toBe(1))
+      expect(mock.history.post[0].url).toBe('/api/tickets/ticket-1/replies')
+      expect(JSON.parse(mock.history.post[0].data)).toEqual({ body: 'Thanks for reaching out.' })
+    })
+
+    it('clears the textarea after a successful submission', async () => {
+      const user = userEvent.setup()
+      renderPage()
+      await waitForTicket()
+      await user.type(screen.getByLabelText('Reply body'), 'Thanks for reaching out.')
+      await user.click(screen.getByRole('button', { name: 'Send Reply' }))
+      await waitFor(() => expect(screen.getByLabelText('Reply body')).toHaveValue(''))
+    })
+
+    it('shows "Sending…" and disables the button while the request is pending', async () => {
+      mock.onPost('/api/tickets/ticket-1/replies').reply(() => new Promise(() => {}))
+      const user = userEvent.setup()
+      renderPage()
+      await waitForTicket()
+      await user.type(screen.getByLabelText('Reply body'), 'Hello')
+      await user.click(screen.getByRole('button', { name: 'Send Reply' }))
+      await waitFor(() => expect(screen.getByText('Sending…')).toBeInTheDocument())
+      expect(screen.getByText('Sending…').closest('button')).toBeDisabled()
+    })
+
+    it('shows an error message when the POST fails', async () => {
+      mock.onPost('/api/tickets/ticket-1/replies').reply(500)
+      const user = userEvent.setup()
+      renderPage()
+      await waitForTicket()
+      await user.type(screen.getByLabelText('Reply body'), 'Hello')
+      await user.click(screen.getByRole('button', { name: 'Send Reply' }))
+      await waitFor(() =>
+        expect(screen.getByText('Failed to send reply. Please try again.')).toBeInTheDocument()
+      )
     })
   })
 })

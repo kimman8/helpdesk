@@ -1,3 +1,5 @@
 export * from './schemas/users'
+export * from './schemas/replies'
 export * from './constants/roles'
 export * from './constants/tickets'
+export * from './types/tickets'

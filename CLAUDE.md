@@ -53,17 +53,24 @@ Use `~/.bun/bin/bun` if `bun` is not yet on PATH in the current shell.
 
 ## Testing philosophy
 
-**Default to component tests. Reserve e2e for what only a real browser + server can verify.**
+**Default to component tests. An e2e test is only justified when a mock cannot replace the real server.**
+
+The deciding question is: *can I mock the API response and assert on rendered output?* If yes, it's a component test. Do not write an e2e test for behaviour that a component test already covers — and do not write a new e2e test for behaviour that a component test could cover.
 
 | Use component tests (Vitest + RTL) for | Use e2e tests (Playwright) for |
 |---|---|
-| Rendering logic and UI states | Real auth session behaviour |
-| Loading / empty / error states | DB round-trips (e.g. webhook → table) |
-| Badge and label mappings | Server-side sort / filter correctness |
-| Form validation and submission | API contract (status codes, response shape) |
-| Modal open/close and cancel flows | Cross-service integration |
+| Rendering logic and UI states | Real auth session behaviour (login, sign-out, session persistence) |
+| Loading / empty / error states | DB round-trips (e.g. webhook → table, create → row visible) |
+| Badge and label mappings | Server-side sort / filter / pagination correctness |
+| Form validation and submission | API contract (real status codes, real response shape) |
+| Modal open/close and cancel flows | Cross-service integration (email → ticket) |
+| Role-based rendering (mock the session) | Protected/admin route redirects (requires real session cookie) |
 
-If you can mock the API response and assert on rendered output, write a component test. Only reach for e2e when the value comes from the real server or a real auth session.
+**Hard rules:**
+- Never write an e2e test for form validation — Zod/RHF validation is unit-testable.
+- Never write an e2e test for modal rendering or cancel flows — mock the component.
+- Never write an e2e test for role-based UI (link visible/hidden, badge text) — mock `authClient.useSession()`.
+- When adding an e2e test that duplicates existing component test coverage, delete the e2e test instead.
 
 ## Component Testing — Vitest + React Testing Library
 - **Runner:** Vitest (configured in `client/vite.config.ts`, environment: jsdom)

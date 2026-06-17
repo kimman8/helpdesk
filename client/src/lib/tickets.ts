@@ -1,16 +1,5 @@
 import { TicketStatus, TicketCategory } from '@helpdesk/core'
-
-export interface Ticket {
-  id: string
-  subject: string
-  status: TicketStatus
-  category: TicketCategory
-  fromEmail: string
-  fromName: string | null
-  assignedTo: string | null
-  createdAt: string
-  assignedUser: { name: string } | null
-}
+export type { Ticket } from '@helpdesk/core'
 
 export interface TicketPage {
   data: Ticket[]
