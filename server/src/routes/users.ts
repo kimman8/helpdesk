@@ -70,7 +70,10 @@ router.delete('/:id', requireAdmin, async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.params.id }, select: { role: true } })
   if (!user) { res.status(404).json({ error: 'User not found' }); return }
   if (user.role === Role.ADMIN) { res.status(403).json({ error: 'Admin users cannot be deleted' }); return }
-  await prisma.user.update({ where: { id: req.params.id }, data: { deletedAt: new Date() } })
+  await prisma.$transaction([
+    prisma.ticket.updateMany({ where: { assignedTo: req.params.id }, data: { assignedTo: null } }),
+    prisma.user.update({ where: { id: req.params.id }, data: { deletedAt: new Date() } }),
+  ])
   res.status(204).end()
 })
 

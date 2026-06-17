@@ -1,4 +1,4 @@
-import { TicketStatus, TicketCategory } from '@helpdesk/core'
+ import { TicketStatus, TicketCategory, type Ticket } from '@helpdesk/core'
 export type { Ticket } from '@helpdesk/core'
 
 export interface TicketPage {

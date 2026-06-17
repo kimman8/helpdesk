@@ -72,7 +72,11 @@ export default function UpdateTicket({ ticket, agents, onPatch }: Props) {
           <p className="text-xs text-muted-foreground">Assigned To</p>
           <Select value={ticket.assignedTo ?? 'unassigned'} onValueChange={handleAssign}>
             <SelectTrigger className="h-8 text-xs w-full" aria-label="Assigned To">
-              <SelectValue />
+              <SelectValue>
+                {ticket.assignedTo
+                  ? (ticket.assignedUser?.name ?? ticket.assignedTo)
+                  : <span className="italic text-muted-foreground">Unassigned</span>}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="unassigned">

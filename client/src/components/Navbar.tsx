@@ -22,14 +22,14 @@ export default function Navbar() {
   return (
     <header className="h-14 bg-slate-900 border-b border-slate-700 flex items-center px-6 gap-4">
       {/* Brand */}
-      <div className="flex items-center gap-2.5 mr-auto">
+      <Link to="/" className="flex items-center gap-2.5 mr-auto">
         <div className="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center shrink-0">
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636a9 9 0 11-12.728 0M12 3v9" />
           </svg>
         </div>
         <span className="font-semibold text-white text-sm tracking-tight">Helpdesk</span>
-      </div>
+      </Link>
 
       {/* Admin nav */}
       {session?.user.role === Role.ADMIN && (
