@@ -10,7 +10,7 @@ export default function UsersPage() {
   const [modalOpen, setModalOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-muted/40">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main className="max-w-5xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between mb-6">

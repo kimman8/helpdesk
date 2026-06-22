@@ -63,7 +63,14 @@
       "Skill(run)",
       "Bash(npx -y chromium-cli screenshot http://localhost:5173/ /tmp/helpdesk-home.png)",
       "Bash(echo \"exit: $?\")",
-      "Bash(npx playwright *)"
+      "Bash(npx playwright *)",
+      "Bash(bun -e \"import { openai } from '@ai-sdk/openai'; import { generateText } from 'ai'; console.log\\('imports ok'\\)\")",
+      "Bash(~/.bun/bin/bun run *)",
+      "Bash(echo \"server pid: $!\")",
+      "Bash(echo \"client pid: $!\")",
+      "Bash(npx --yes playwright screenshot --browser chromium --full-page http://localhost:5173/login /tmp/dispatch-login.png)",
+      "Bash(pkill -f \"bun run dev\")",
+      "Bash(pkill -f \"vite\")"
     ]
   }
 }

@@ -17,7 +17,7 @@ export default function TicketDetail({ ticket }: { ticket: TicketData }) {
         <p className="text-sm text-muted-foreground mt-1">
           From {ticket.fromName ?? ticket.fromEmail}
           {ticket.fromName && <span className="text-muted-foreground/60"> · {ticket.fromEmail}</span>}
-          <span className="text-muted-foreground/60"> · {formatDate(ticket.createdAt)}</span>
+          <span className="font-mono tabular-nums text-muted-foreground/60"> · {formatDate(ticket.createdAt)}</span>
         </p>
       </div>
 
@@ -25,7 +25,7 @@ export default function TicketDetail({ ticket }: { ticket: TicketData }) {
         <p className="text-sm text-muted-foreground italic">No messages yet.</p>
       ) : (
         ticket.messages.map((msg) => (
-          <Card key={msg.id} className={msg.isAgent ? 'border-primary/20 bg-primary/5' : undefined}>
+          <Card key={msg.id} className={msg.isAgent ? 'border-primary/30 bg-primary/10' : undefined}>
             <CardContent className="pt-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">
@@ -34,7 +34,7 @@ export default function TicketDetail({ ticket }: { ticket: TicketData }) {
                     <Badge variant="outline" className="ml-2 text-xs">Agent</Badge>
                   )}
                 </span>
-                <span className="text-xs text-muted-foreground">{formatDate(msg.createdAt)}</span>
+                <span className="text-xs font-mono tabular-nums text-muted-foreground">{formatDate(msg.createdAt)}</span>
               </div>
               <p className="text-sm whitespace-pre-wrap">{msg.body}</p>
             </CardContent>

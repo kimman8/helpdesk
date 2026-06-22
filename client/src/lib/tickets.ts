@@ -15,9 +15,9 @@ export interface TicketFilters {
   search?: string
 }
 
-export const STATUS_VARIANT: Record<TicketStatus, 'default' | 'secondary' | 'outline'> = {
-  [TicketStatus.OPEN]: 'default',
-  [TicketStatus.RESOLVED]: 'secondary',
+export const STATUS_VARIANT: Record<TicketStatus, 'amber' | 'success' | 'outline'> = {
+  [TicketStatus.OPEN]: 'amber',
+  [TicketStatus.RESOLVED]: 'success',
   [TicketStatus.CLOSED]: 'outline',
 }
 

@@ -72,7 +72,7 @@ export default function UsersTable() {
                   users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-sm">{user.email}</TableCell>
                       <TableCell>
                         <Badge variant={user.role === Role.ADMIN ? 'default' : 'secondary'}>
                           {user.role}
@@ -85,7 +85,7 @@ export default function UsersTable() {
                           <Badge variant="outline">Active</Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
+                      <TableCell className="text-muted-foreground text-sm font-mono tabular-nums">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>

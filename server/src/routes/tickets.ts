@@ -1,5 +1,7 @@
 import { Router } from 'express'
 import { z } from 'zod'
+import { anthropic } from '@ai-sdk/anthropic'
+import { generateText } from 'ai'
 import { requireAuth } from '../middleware/requireAuth'
 import { createReplySchema } from '@helpdesk/core'
 import prisma from '../lib/db'
@@ -147,6 +149,35 @@ router.get('/:id', requireAuth, async (req, res) => {
   }
 
   res.json(ticket)
+})
+
+const polishSchema = z.object({ body: z.string().min(1, 'Reply body is required') })
+
+router.post('/:id/polish-reply', requireAuth, async (req, res) => {
+  const result = polishSchema.safeParse(req.body)
+  if (!result.success) {
+    res.status(400).json({ error: result.error.issues[0].message })
+    return
+  }
+
+  try {
+    const { text } = await generateText({
+      model: anthropic('claude-haiku-4-5-20251001'),
+      maxRetries: 0,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are a professional helpdesk agent. Improve the following reply to make it clear, concise, and professional. Return only the improved reply text with no extra commentary.',
+        },
+        { role: 'user', content: result.data.body },
+      ],
+    })
+    res.json({ body: text })
+  } catch (err) {
+    console.error('[polish-reply]', err)
+    res.status(500).json({ error: 'Failed to polish reply' })
+  }
 })
 
 router.post('/:id/replies', requireAuth, async (req, res) => {

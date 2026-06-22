@@ -7,9 +7,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.85",
+    "@ai-sdk/openai": "^3.0.72",
     "@helpdesk/core": "workspace:*",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
+    "ai": "^6.0.207",
     "better-auth": "^1.6.2",
     "cors": "^2.8.5",
     "dotenv": "^17.4.1",

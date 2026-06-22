@@ -72,10 +72,10 @@ const columns: ColumnDef<Ticket>[] = [
       row.original.fromName ? (
         <>
           <span className="text-foreground">{row.original.fromName}</span>
-          <span className="block text-xs">{row.original.fromEmail}</span>
+          <span className="block text-xs font-mono text-muted-foreground">{row.original.fromEmail}</span>
         </>
       ) : (
-        row.original.fromEmail
+        <span className="font-mono text-sm">{row.original.fromEmail}</span>
       ),
   },
   {
@@ -114,7 +114,7 @@ const columns: ColumnDef<Ticket>[] = [
     header: 'Date',
     enableSorting: true,
     cell: ({ getValue }) => (
-      <span className="text-muted-foreground text-sm">{formatDate(getValue() as string)}</span>
+      <span className="text-muted-foreground text-sm font-mono tabular-nums">{formatDate(getValue() as string)}</span>
     ),
   },
 ]

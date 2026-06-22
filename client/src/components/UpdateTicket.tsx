@@ -94,11 +94,11 @@ export default function UpdateTicket({ ticket, agents, onPatch }: Props) {
         <div className="border-t pt-4 space-y-2 text-xs text-muted-foreground">
           <div className="flex justify-between">
             <span>Created</span>
-            <span>{formatDate(ticket.createdAt)}</span>
+            <span className="font-mono tabular-nums">{formatDate(ticket.createdAt)}</span>
           </div>
           <div className="flex justify-between">
             <span>Updated</span>
-            <span>{formatDate(ticket.updatedAt)}</span>
+            <span className="font-mono tabular-nums">{formatDate(ticket.updatedAt)}</span>
           </div>
         </div>
       </CardContent>

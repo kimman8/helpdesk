@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
@@ -35,10 +36,32 @@ export default function TicketDetailPage() {
   const { data: ticket, isLoading, error } = useTicket(id!)
   const { data: agents = [] } = useAgents()
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<CreateReplyInput>({
+  const { register, handleSubmit, reset, setValue, getValues, formState: { errors } } = useForm<CreateReplyInput>({
     resolver: zodResolver(createReplySchema),
     defaultValues: { body: '' },
   })
+
+  const [isPolishing, setIsPolishing] = useState(false)
+  const [polishError, setPolishError] = useState<string | null>(null)
+
+  async function handlePolish() {
+    const body = getValues('body').trim()
+    if (!body) return
+    setIsPolishing(true)
+    setPolishError(null)
+    try {
+      const { data } = await axios.post<{ body: string }>(
+        `/api/tickets/${id}/polish-reply`,
+        { body },
+        { withCredentials: true },
+      )
+      setValue('body', data.body, { shouldValidate: true })
+    } catch {
+      setPolishError('Failed to polish reply. Please try again.')
+    } finally {
+      setIsPolishing(false)
+    }
+  }
 
   const replyMutation = useMutation({
     mutationFn: (data: CreateReplyInput) =>
@@ -56,7 +79,7 @@ export default function TicketDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/40">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main className="max-w-6xl mx-auto px-6 py-10">
         <BackButton />
@@ -87,8 +110,20 @@ export default function TicketDetailPage() {
                     {replyMutation.isError && (
                       <p className="text-xs text-destructive">Failed to send reply. Please try again.</p>
                     )}
-                    <div className="flex justify-end">
-                      <Button type="submit" size="sm" disabled={replyMutation.isPending}>
+                    {polishError && (
+                      <p className="text-xs text-destructive">{polishError}</p>
+                    )}
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={handlePolish}
+                        disabled={isPolishing || replyMutation.isPending}
+                      >
+                        {isPolishing ? 'Polishing…' : 'Polish'}
+                      </Button>
+                      <Button type="submit" size="sm" disabled={replyMutation.isPending || isPolishing}>
                         {replyMutation.isPending ? 'Sending…' : 'Send Reply'}
                       </Button>
                     </div>

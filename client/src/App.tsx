@@ -26,13 +26,13 @@ function HomePage() {
   const { data: stats, isLoading } = useTicketStats()
 
   const statCards = [
-    { label: 'Open tickets', value: isLoading ? '—' : String(stats?.open ?? 0),       color: 'text-blue-600' },
-    { label: 'Resolved',     value: isLoading ? '—' : String(stats?.resolved ?? 0),   color: 'text-green-600' },
-    { label: 'Unassigned',   value: isLoading ? '—' : String(stats?.unassigned ?? 0), color: 'text-amber-600' },
+    { label: 'Open tickets', value: isLoading ? '—' : String(stats?.open ?? 0),       color: 'text-blue-400' },
+    { label: 'Resolved',     value: isLoading ? '—' : String(stats?.resolved ?? 0),   color: 'text-emerald-400' },
+    { label: 'Unassigned',   value: isLoading ? '—' : String(stats?.unassigned ?? 0), color: 'text-amber-400' },
   ]
 
   return (
-    <div className="min-h-screen bg-muted/40">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main className="max-w-5xl mx-auto px-6 py-10">
         <div className="mb-8">
