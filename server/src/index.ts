@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
@@ -40,6 +42,14 @@ app.get('/health', (_req, res) => {
 app.use('/api/users', usersRouter)
 app.use('/api/tickets', ticketsRouter)
 app.use('/api/webhooks', webhookRouter)
+
+if (process.env.NODE_ENV === 'production') {
+  const clientDist = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../client/dist');
+  app.use(express.static(clientDist));
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

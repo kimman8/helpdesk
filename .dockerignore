@@ -1,0 +1,11 @@
+node_modules
+**/node_modules
+**/.env
+.git
+.github
+playwright-report
+test-results
+playwright/.auth
+e2e
+client/dist
+server/src/generated

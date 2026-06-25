@@ -70,7 +70,16 @@
       "Bash(echo \"client pid: $!\")",
       "Bash(npx --yes playwright screenshot --browser chromium --full-page http://localhost:5173/login /tmp/dispatch-login.png)",
       "Bash(pkill -f \"bun run dev\")",
-      "Bash(pkill -f \"vite\")"
+      "Bash(pkill -f \"vite\")",
+      "Bash(./node_modules/.bin/prisma generate *)",
+      "Bash(/usr/local/bin/docker --version)",
+      "Bash(/Applications/Docker.app/Contents/Resources/bin/docker --version)",
+      "Bash(/usr/local/bin/docker info *)",
+      "Bash(/usr/local/bin/docker build *)",
+      "Bash(pkill -f \"bun --watch\")",
+      "Bash(/usr/local/bin/docker run *)",
+      "Bash(/usr/local/bin/docker logs *)",
+      "Bash(/usr/local/bin/docker stop *)"
     ]
   }
 }
